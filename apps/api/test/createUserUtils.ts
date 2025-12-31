@@ -1,8 +1,10 @@
 import axios from "axios";
 import { BACKEND_URL } from "./config";
-const USERNAME = Math.random().toString();
+
 export async function CreateUser(): Promise<{ id: string, Jwt: string }>{
+  const USERNAME = Math.random().toString();
   const res = await axios.post(`${BACKEND_URL}/user/signup`,{
+    
     username : USERNAME,
     password : "rudra123"
   })

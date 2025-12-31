@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 const  app = express();
 import { prisma } from "db/client";
 import { AuthInput } from "./types";
-import { FileWatcherEventKind, formatDiagnosticsWithColorAndContext } from "typescript";
+
 import jwt from "jsonwebtoken";
 import { authMiddleWare } from "./middleware";
 app.use(express.json())
@@ -34,6 +34,8 @@ app.post("/website" , authMiddleWare,async (req,res)=>{
 app.get("/status/:websiteId",authMiddleWare,async(req,res)=>{
   
   try{
+    console.log("Before log ");
+    
     const webite = await prisma.website.findFirst({
       where:{
         userId : req.userId!,
@@ -49,6 +51,7 @@ app.get("/status/:websiteId",authMiddleWare,async(req,res)=>{
       }
     })
     
+    console.log("After log");
     
     if(!webite){
       return res.status(403).json({
@@ -60,7 +63,9 @@ app.get("/status/:websiteId",authMiddleWare,async(req,res)=>{
     })
     
   }catch(e){
-    
+    res.status(403).json({
+      message: "error"
+    })
   }
 })
 
