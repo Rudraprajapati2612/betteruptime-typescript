@@ -94,8 +94,8 @@ describe("can fetch a website",()=>{
       }
     )
 
-    expect(getWebsiteResponse.data.webite.id).toBe(WebsiteRepsone.data.id)
-    expect(getWebsiteResponse.data.webite.userId).toBe(id1)
+    expect(getWebsiteResponse.data.id).toBe(WebsiteRepsone.data.id)
+    expect(getWebsiteResponse.data.user_id).toBe(id1)
   })
   
   it("Cant Fetch website created by another user",async ()=>{

@@ -59,7 +59,9 @@ app.get("/status/:websiteId",authMiddleWare,async(req,res)=>{
       })
     }
     res.json({
-      webite
+      url : webite.url,
+      id : webite.id,
+      user_id : webite.userId
     })
     
   }catch(e){

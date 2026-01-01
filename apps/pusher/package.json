@@ -1,0 +1,17 @@
+{
+  "name": "pusher",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "db": "*",
+    "dotenv": "^17.2.3",
+    "redisstream": "*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
