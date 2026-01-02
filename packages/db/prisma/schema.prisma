@@ -38,7 +38,7 @@ model Region {
 
 model WebsiteTick{
   id               String              @id   @default(uuid())
-  respone_time     Int
+  response_time     Int
   status           WebsiteStatus
   region           Region           @relation(fields: [region_id] , references: [id])
   website          Website           @relation(fields: [website_id],references: [id]) 

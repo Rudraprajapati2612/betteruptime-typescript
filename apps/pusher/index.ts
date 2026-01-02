@@ -1,6 +1,5 @@
 import "dotenv/config"
 import { prisma } from "db/client";
-// import {xAddBulk} from "redisstream/client"
 import { xAddBulk } from "redisstream";
 async function main(){
     const website = await prisma.website.findMany({
@@ -19,5 +18,5 @@ async function main(){
 }
 setInterval(() => {
     main()
-}, 3*1000*60);
+}, 3*1000);
 main()

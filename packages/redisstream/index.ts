@@ -1,60 +1,120 @@
 import { createClient } from "redis";
 
-const client =  await createClient().
-on("error",(err)=>console.log("Reddis Error",err))
-.connect()
 
 
-type websiteEvent = {url:String,id:String}
-type MessageType = {
-    id :string,
-    message:{
-        url : string,
-        id  : string
-    }
-}
-const STREAM_NAME = 'betteruptime:website'
-async function xAdd({url,id}:websiteEvent){
-    await client.xAdd(
-        STREAM_NAME ,'*',{
-            url:String(url),
-            id:String(id)
-        }
-    )
-}
-
-export async function xAddBulk(website:websiteEvent[]){
-    for(let i=0;i<website.length;i++){
-        
-        await xAdd({
-        url : website[i]!.url,
-        id : website[i]!.id
-    
-    })
-
-    }
-}
+export const client = await createClient()
+  .on("error", (err) => console.error("Redis Error", err))
+  .connect();
 
 
-export async function  xReadGroup(consumerGroup:String,workerId : String):Promise<MessageType[]|undefined>{
-    const res =   await client.xReadGroup(
-        String(consumerGroup),String(workerId) ,{
-            key : STREAM_NAME,
-            id :'>'
-        },{
-            'COUNT':5
-        }
-    )
-            // @ts-ignore
-    let messages : MessageType[] | undefined = res?.[0]?.messages
-    
-    return messages;
+
+export type WebsiteEvent = {
+  url: string;
+  id: string;
+};
+
+export type WebsiteMessage = {
+  id: string;
+  message: {
+    url: string;
+    id: string;
+  };
+};
+
+export type DbMessage = {
+  id: string;
+  message: {
+    status: "Up" | "Down";
+    websiteId: string;
+    regionId: string;
+    responseTime: string;
+    timestamp: string;
+  };
+};
+
+
+export const WEBSITE_STREAM = "betteruptime:website";
+export const DB_STREAM = "betteruptime:db";
+
+
+async function xAddWebsite(event: WebsiteEvent) {
+  await client.xAdd(WEBSITE_STREAM, "*", {
+    url: event.url,
+    id: event.id,
+  });
 }
 
-async function xAck(consumerGroup :String,streamId : String){
-    await client.xAck(STREAM_NAME,String(consumerGroup),String(streamId))
+export async function xAddBulk(websites: WebsiteEvent[]) {
+  for (const w of websites) {
+    await xAddWebsite(w);
+  }
 }
 
-export async function xAckBulk(consumerGroup:string,eventids:string[]){
-    eventids.map(eventId=>xAck(consumerGroup,eventId))
+export async function xReadGroup(
+  consumerGroup: string,
+  consumerId: string
+): Promise<WebsiteMessage[] | undefined> {
+  const res = await client.xReadGroup(
+    consumerGroup,
+    consumerId,
+    { key: WEBSITE_STREAM, id: ">" },
+    { COUNT: 5, BLOCK: 5000 }
+  );
+
+  // redis returns [{ name, messages }]
+  // @ts-ignore
+  return res?.[0]?.messages;
+}
+
+
+
+export async function xAddWebsiteStatus(
+  status: "Up" | "Down",
+  websiteId: string,
+  responseTime: number,
+  regionId: string
+) {
+  await client.xAdd(DB_STREAM, "*", {
+    status,
+    websiteId,
+    regionId,
+    responseTime: responseTime.toString(),
+    timestamp: Date.now().toString(),
+  });
+}
+
+export async function xReadGroupDb(
+  stream: string,
+  consumerGroup: string,
+  consumerId: string
+): Promise<DbMessage[] | undefined> {
+  const res = await client.xReadGroup(
+    consumerGroup,
+    consumerId,
+    { key: stream, id: ">" },
+    { COUNT: 10, BLOCK: 5000 }
+  );
+
+  // @ts-ignore
+  return res?.[0]?.messages;
+}
+
+/* -------------------- ACK Helpers -------------------- */
+
+async function xAck(
+  stream: string,
+  consumerGroup: string,
+  messageId: string
+) {
+  await client.xAck(stream, consumerGroup, messageId);
+}
+
+export async function xAckBulk(
+  stream: string,
+  consumerGroup: string,
+  messageIds: string[]
+) {
+  await Promise.all(
+    messageIds.map((id) => xAck(stream, consumerGroup, id))
+  );
 }

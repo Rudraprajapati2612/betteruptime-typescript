@@ -34,7 +34,7 @@ describe("Website not created", () => {
   it("Website created if url is present", async () => {
     const response = await axios.post(
       `${BACKEND_URL}/website`,
-      { url: "https://google.com" },
+      { url: "https://youtube.com" },
       {
         headers: {
           Authorization: token
@@ -101,7 +101,7 @@ describe("can fetch a website",()=>{
   it("Cant Fetch website created by another user",async ()=>{
     const WebsiteRepsone = await axios.post(
       `${BACKEND_URL}/website`,
-      { url: "https://google.com" },
+      { url: "https://youtube.com" },
       {
         headers: {
           Authorization: token1
