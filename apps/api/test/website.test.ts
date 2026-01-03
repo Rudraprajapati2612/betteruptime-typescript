@@ -123,3 +123,40 @@ describe("can fetch a website",()=>{
     }
   })
 })
+
+describe("Should be able to get all  website",()=>{
+  let token :string, id:string;
+
+  beforeAll(async ()=>{
+    const user = await CreateUser();
+    token = user.Jwt;
+    id = user.id;
+  })
+  it("can Fetch it own set of website",async ()=>{
+    await axios.post(`${BACKEND_URL}/website`,{
+      url :"https://google.com/"
+    },{
+      headers:{
+        Authorization : token
+      }
+    })
+
+    await axios.post(`${BACKEND_URL}/website`,{
+      url :"https://github.com/"
+    },{
+      headers:{
+        Authorization : token
+      }
+    })
+
+    const response = await axios.get(`${BACKEND_URL}/website`,{
+      headers:{
+        Authorization:token
+      }
+    })
+
+    expect(response.data.website.length==2,"false")
+
+
+  })
+})

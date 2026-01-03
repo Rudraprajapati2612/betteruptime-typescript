@@ -4,11 +4,11 @@ import bcrypt from "bcrypt";
 const  app = express();
 import { prisma } from "db/client";
 import { AuthInput } from "./types";
-
+import cors from  "cors";
 import jwt from "jsonwebtoken";
 import { authMiddleWare } from "./middleware";
 app.use(express.json())
-
+app.use(cors())
 
 console.log(process.env.DATABASE_URL);
 
@@ -46,7 +46,7 @@ app.get("/status/:websiteId",authMiddleWare,async(req,res)=>{
           orderBy :[{
             createdAt: 'desc'
           }],
-          take : 1
+          take : 10
         }
       }
     })
@@ -119,7 +119,7 @@ app.post("/user/signin",async(req,res)=>{
     }
   
   
-    const isValidUser = bcrypt.compare(data.data.password, user.password);
+    const isValidUser = await bcrypt.compare(data.data.password, user.password);
   
     if (!isValidUser) {
       return res.status(403).json({
@@ -144,7 +144,20 @@ app.post("/user/signin",async(req,res)=>{
     return res.status(403).send("Error")
   }
 })
-app.listen(3000,()=>{
-    console.log("Server is running on port 3000");
+
+
+app.get("/website",authMiddleWare, async (req,res)=>{
+  const website =  await prisma.website.findMany({
+    where:{
+      userId : req.userId
+    }
+  })
+
+  res.json({
+    website
+  })
+})
+app.listen(3001,()=>{
+    console.log("Server is running on port 3001");
     
 })
