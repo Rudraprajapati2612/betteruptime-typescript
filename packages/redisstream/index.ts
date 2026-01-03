@@ -1,23 +1,19 @@
 import { createClient } from "redis";
 
-
-
 export const client = await createClient()
   .on("error", (err) => console.error("Redis Error", err))
   .connect();
 
-
-
 export type WebsiteEvent = {
   url: string;
-  id: string;
+  websiteId: string;  // Changed from 'id' to 'websiteId'
 };
 
 export type WebsiteMessage = {
   id: string;
   message: {
     url: string;
-    id: string;
+    websiteId: string;  // Changed from 'id' to 'websiteId'
   };
 };
 
@@ -32,15 +28,14 @@ export type DbMessage = {
   };
 };
 
-
 export const WEBSITE_STREAM = "betteruptime:website";
 export const DB_STREAM = "betteruptime:db";
 
-
+// add website to the queue
 async function xAddWebsite(event: WebsiteEvent) {
   await client.xAdd(WEBSITE_STREAM, "*", {
     url: event.url,
-    id: event.id,
+    websiteId: event.websiteId,  // Changed to use websiteId
   });
 }
 
@@ -65,8 +60,6 @@ export async function xReadGroup(
   // @ts-ignore
   return res?.[0]?.messages;
 }
-
-
 
 export async function xAddWebsiteStatus(
   status: "Up" | "Down",

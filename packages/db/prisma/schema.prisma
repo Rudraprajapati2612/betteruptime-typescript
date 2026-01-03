@@ -29,7 +29,7 @@ model Website{
   tickes      WebsiteTick[]
   
 }
-
+ 
 model Region {
   id          String                @id @default(uuid())
   name        String

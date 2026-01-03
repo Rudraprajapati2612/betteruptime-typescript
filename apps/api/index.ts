@@ -146,16 +146,59 @@ app.post("/user/signin",async(req,res)=>{
 })
 
 
-app.get("/website",authMiddleWare, async (req,res)=>{
-  const website =  await prisma.website.findMany({
-    where:{
-      userId : req.userId
-    }
-  })
+// app.get("/website",authMiddleWare, async (req,res)=>{
+//   const website =  await prisma.website.findMany({
+//     where:{
+//       userId : req.userId
+//     },
+//     include:{
+//       tickes:{
+//         orderBy:[{
+//           createdAt:'desc'
+//         }],
+//         take : 1
+//       }
+//     }
+//   })
 
-  res.json({
-    website
-  })
+//   res.json({
+//     website
+//   })
+// })
+
+app.get("/website", authMiddleWare, async (req, res) => {
+  try {
+    const websites = await prisma.website.findMany({
+      where: {
+        userId: req.userId
+      },
+      include: {
+        tickes: {
+          orderBy: [{
+            createdAt: 'desc'
+          }],
+          take: 1
+        }
+      }
+    })
+
+    // Debug logging
+    console.log("User ID:", req.userId)
+    console.log("Found websites:", websites.length)
+    websites.forEach(w => {
+      console.log(`Website ${w.url}: ${w.tickes.length} ticks`)
+      if (w.tickes.length > 0) {
+        console.log(`  Latest status: ${w.tickes[0]?.status}`)
+      }
+    })
+
+    res.json({
+      website: websites
+    })
+  } catch (e) {
+    console.error("Error fetching websites:", e)
+    res.status(500).json({ message: "Error fetching websites" })
+  }
 })
 app.listen(3001,()=>{
     console.log("Server is running on port 3001");
